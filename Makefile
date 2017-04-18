@@ -8,9 +8,12 @@ include pdf_bounds.mk
 
 .PHONY: all clean
 
-all: final/chicago_yearly_price_data.csv final/suburb_yearly_price_data.csv \
-	final/chicago_monthly_price_data.csv final/suburb_monthly_price_data.csv \
-	final/county_yearly_price_data.csv final/county_monthly_price_data.csv
+all: final/chicago_yearly_price_data_$(month)_$(year).csv \
+	final/suburb_yearly_price_data_$(month)_$(year).csv \
+	final/chicago_monthly_price_data_$(month)_$(year).csv \
+	final/suburb_monthly_price_data_$(month)_$(year).csv \
+	final/county_yearly_price_data_$(month)_$(year).csv \
+	final/county_monthly_price_data_$(month)_$(year).csv
 
 clean:
 	rm -Rf raw/
@@ -122,23 +125,23 @@ cleaned_csvs: raw_csvs
 	cat conversion_errors.csv
 	touch $@
 
-final/chicago_yearly_price_data.csv: cleaned_csvs
+final/chicago_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	csvstack raw/csvs/chicago/clean/*_yearly.csv > $@
 
-final/chicago_monthly_price_data.csv: cleaned_csvs
+final/chicago_monthly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	csvstack raw/csvs/chicago/clean/*_monthly.csv > $@
 
-final/county_yearly_price_data.csv: cleaned_csvs
+final/county_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	csvstack raw/csvs/county-summaries/clean/*_yearly.csv > $@
 
-final/county_monthly_price_data.csv: cleaned_csvs
+final/county_monthly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	csvstack raw/csvs/county-summaries/clean/*_monthly.csv > $@
 
-final/suburb_yearly_price_data.csv: cleaned_csvs
+final/suburb_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	for csv in raw/csvs/suburbs/clean/*_2_yearly.csv; do \
 		export fname=$$(basename "$$csv" _2_yearly.csv); \
@@ -148,7 +151,7 @@ final/suburb_yearly_price_data.csv: cleaned_csvs
 	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | sort -r -u | csvsort -I -c 1 > $@
 	rm raw/csvs/suburbs/clean/*_yearly_final.csv
 
-final/suburb_monthly_price_data.csv: cleaned_csvs
+final/suburb_monthly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
 	for csv in raw/csvs/suburbs/clean/*_2_monthly.csv; do \
 		export fname=$$(basename "$$csv" _2_monthly.csv); \
