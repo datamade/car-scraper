@@ -1,5 +1,5 @@
-year = 2016
-month = 12
+year = 2017
+month = 03
 
 tabula = java -jar ./tabula-java/target/tabula-0.9.1-jar-with-dependencies.jar
 pdf-pages = `pdfinfo "$$pdf" | grep Pages | perl -p -e 's/[^[0-9]*//'`
@@ -75,11 +75,12 @@ raw_csvs: pdfs
 	touch $@
 
 cleaned_csvs: raw_csvs
-	mkdir -p raw/csvs/chicago/clean raw/csvs/suburbs/clean
+	mkdir -p raw/csvs/chicago/clean raw/csvs/suburbs/clean raw/csvs/county-summaries/clean
 	if [ -f conversion_errors.csv ]; then \
 		rm conversion_errors.csv; \
 	fi
 	touch conversion_errors.csv
+	echo "Cleaning Chicago reports..."
 	for csv in raw/csvs/chicago/*.csv; \
 	do \
 		export fname=$$(basename "$$csv" .csv); \
@@ -92,6 +93,20 @@ cleaned_csvs: raw_csvs
 			python scripts/test_price_data_conversion.py "raw/csvs/chicago/clean/$${fname}_monthly.csv" \
 			>> "conversion_errors.csv" 2>&1; \
 	done
+	echo "Cleaning county summary reports..."
+	for csv in raw/csvs/county-summaries/*.csv; \
+	do \
+		export fname=$$(basename "$$csv" .csv); \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "yearly" > "raw/csvs/county-summaries/clean/$${fname}_yearly.csv"; \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "monthly" > "raw/csvs/county-summaries/clean/$${fname}_monthly.csv"; \
+		cat "raw/csvs/county-summaries/clean/$${fname}_yearly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/county-summaries/clean/$${fname}_yearly.csv" \
+			>> "conversion_errors.csv" 2>&1; \
+		cat "raw/csvs/county-summaries/clean/$${fname}_monthly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/county-summaries/clean/$${fname}_monthly.csv" \
+			>> "conversion_errors.csv" 2>&1; \
+	done
+	echo "Cleaning suburb reports..."
 	for csv in raw/csvs/suburbs/*.csv; do \
 		export fname=$$(eval basename $$csv .csv); \
 		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "yearly" > "raw/csvs/suburbs/clean/$${fname}_yearly.csv"; \
@@ -113,6 +128,14 @@ final/chicago_yearly_price_data.csv: cleaned_csvs
 final/chicago_monthly_price_data.csv: cleaned_csvs
 	mkdir -p final
 	csvstack raw/csvs/chicago/clean/*_monthly.csv > $@
+
+final/county_yearly_price_data.csv: cleaned_csvs
+	mkdir -p final
+	csvstack raw/csvs/county-summaries/clean/*_yearly.csv > $@
+
+final/county_monthly_price_data.csv: cleaned_csvs
+	mkdir -p final
+	csvstack raw/csvs/county-summaries/clean/*_monthly.csv > $@
 
 final/suburb_yearly_price_data.csv: cleaned_csvs
 	mkdir -p final
