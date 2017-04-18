@@ -9,7 +9,8 @@ include pdf_bounds.mk
 .PHONY: all clean
 
 all: final/chicago_yearly_price_data.csv final/suburb_yearly_price_data.csv \
-	final/chicago_monthly_price_data.csv final/suburb_monthly_price_data.csv
+	final/chicago_monthly_price_data.csv final/suburb_monthly_price_data.csv \
+	final/county_yearly_price_data.csv final/county_monthly_price_data.csv
 
 clean:
 	rm -Rf raw/
