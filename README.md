@@ -9,6 +9,7 @@ We built this scraper for Crain's Chicago Business as part of the [Where to Buy]
 Make sure you have OS-level requirements installed:
 
 * Python 3.3+ (standard DataMade tool)
+* [blackbox and GPG](https://github.com/datamade/deploy-a-site/blob/master/Setup-blackbox.md)
 * pdfinfo (available as part of [Xpdf](http://www.foolabs.com/xpdf/download.html) - mac users can also use the [Poppler](https://poppler.freedesktop.org/) fork via homebrew: `brew install poppler`)
 
 Then, make a virtualenv and install Python requirements:
