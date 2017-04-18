@@ -10,10 +10,11 @@ from secrets import CAR_USER, CAR_PASS
 class RequestException(Exception):
     pass
 
-YEAR = sys.argv[1]
+YEAR = sys.argv[2]
+MONTH = sys.argv[1]
 BASE_URL = "http://car.stats.10kresearch.com"
 LOGIN_URL = BASE_URL + "/login"
-LIST_URL = BASE_URL + "/docs/lmu/" + YEAR + "-12/list"  # recent reports
+LIST_URL = BASE_URL + "/docs/lmu/" + YEAR + "-" + MONTH + "/list"
 
 # Get the verification token
 raw_login = requests.get(LOGIN_URL)

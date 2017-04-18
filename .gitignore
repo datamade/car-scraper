@@ -4,3 +4,5 @@ secrets.py
 /keyrings/live/pubring.gpg~
 /keyrings/live/pubring.kbx~
 /keyrings/live/secring.gpg
+/configs/secrets.py
+tabula-java/

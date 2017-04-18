@@ -1,9 +1,20 @@
 year = 2016
+month = 12
 
 tabula = java -jar ./tabula-java/target/tabula-0.9.1-jar-with-dependencies.jar
 pdf-pages = `pdfinfo "$$pdf" | grep Pages | perl -p -e 's/[^[0-9]*//'`
 
 include pdf_bounds.mk
+
+.PHONY: all clean
+
+all: final/chicago_yearly_price_data.csv final/suburb_yearly_price_data.csv \
+	final/chicago_monthly_price_data.csv final/suburb_monthly_price_data.csv
+
+clean:
+	rm -Rf raw/
+	rm -Rf final/
+	rm cleaned_csvs raw_csvs pdfs conversion_errors.csv
 
 tabula-java :
 	git clone https://github.com/tabulapdf/tabula-java.git
@@ -13,7 +24,7 @@ tabula-java :
 
 pdfs: 
 	mkdir -p raw/pdfs
-	python scripts/retrieve_pdfs.py $(year)
+	python scripts/retrieve_pdfs.py $(month) $(year)
 	touch $@
 
 raw_csvs: pdfs
@@ -72,29 +83,53 @@ cleaned_csvs: raw_csvs
 	for csv in raw/csvs/chicago/*.csv; \
 	do \
 		export fname=$$(basename "$$csv" .csv); \
-		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) > "raw/csvs/chicago/clean/$${fname}.csv"; \
-		cat "raw/csvs/chicago/clean/$${fname}.csv" | \
-			python scripts/test_price_data_conversion.py "raw/csvs/chicago/clean/$${fname}.csv" \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "yearly" > "raw/csvs/chicago/clean/$${fname}_yearly.csv"; \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "monthly" > "raw/csvs/chicago/clean/$${fname}_monthly.csv"; \
+		cat "raw/csvs/chicago/clean/$${fname}_yearly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/chicago/clean/$${fname}_yearly.csv" \
+			>> "conversion_errors.csv" 2>&1; \
+		cat "raw/csvs/chicago/clean/$${fname}_monthly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/chicago/clean/$${fname}_monthly.csv" \
 			>> "conversion_errors.csv" 2>&1; \
 	done
 	for csv in raw/csvs/suburbs/*.csv; do \
 		export fname=$$(eval basename $$csv .csv); \
-		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) > "raw/csvs/suburbs/clean/$${fname}.csv"; \
-		cat "raw/csvs/suburbs/clean/$${fname}.csv" | \
-			python scripts/test_price_data_conversion.py "raw/csvs/suburbs/clean/$${fname}.csv" \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "yearly" > "raw/csvs/suburbs/clean/$${fname}_yearly.csv"; \
+		cat "$$csv" | python scripts/clean_price_data.py "$$fname" $(year) "monthly" > "raw/csvs/suburbs/clean/$${fname}_monthly.csv"; \
+		cat "raw/csvs/suburbs/clean/$${fname}_yearly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/suburbs/clean/$${fname}_yearly.csv" \
+			>> "conversion_errors.csv" 2>&1; \
+		cat "raw/csvs/suburbs/clean/$${fname}_monthly.csv" | \
+			python scripts/test_price_data_conversion.py "raw/csvs/suburbs/clean/$${fname}_monthly.csv" \
 			>> "conversion_errors.csv" 2>&1; \
 	done
 	cat conversion_errors.csv
 	touch $@
 
 final/chicago_yearly_price_data.csv: cleaned_csvs
-	csvstack raw/csvs/chicago/clean/*.csv > $@
+	mkdir -p final
+	csvstack raw/csvs/chicago/clean/*_yearly.csv > $@
+
+final/chicago_monthly_price_data.csv: cleaned_csvs
+	mkdir -p final
+	csvstack raw/csvs/chicago/clean/*_monthly.csv > $@
 
 final/suburb_yearly_price_data.csv: cleaned_csvs
-	for csv in raw/csvs/suburbs/clean/*_2.csv; do \
-		export fname=$$(basename "$$csv" _2.csv); \
-		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*.csv); \
-		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_final.csv"; \
+	mkdir -p final
+	for csv in raw/csvs/suburbs/clean/*_2_yearly.csv; do \
+		export fname=$$(basename "$$csv" _2_yearly.csv); \
+		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_yearly.csv); \
+		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_yearly_final.csv"; \
 	done
-	csvstack raw/csvs/suburbs/clean/*_final.csv | sort -r -u | csvsort -I -c 1 > $@
-	rm raw/csvs/suburbs/clean/*_final.csv
+	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | sort -r -u | csvsort -I -c 1 > $@
+	rm raw/csvs/suburbs/clean/*_yearly_final.csv
+
+final/suburb_monthly_price_data.csv: cleaned_csvs
+	mkdir -p final
+	for csv in raw/csvs/suburbs/clean/*_2_monthly.csv; do \
+		export fname=$$(basename "$$csv" _2_monthly.csv); \
+		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_monthly.csv); \
+		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_monthly_final.csv"; \
+	done
+	csvstack raw/csvs/suburbs/clean/*_monthly_final.csv | sort -r -u | csvsort -I -c 1 > $@
+	rm raw/csvs/suburbs/clean/*_monthly_final.csv
