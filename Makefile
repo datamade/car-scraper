@@ -1,10 +1,4 @@
-year = 2017
-month = 05
-
-tabula = java -jar ./tabula-java/target/tabula-0.9.1-jar-with-dependencies.jar
-pdf-pages = `pdfinfo "$$pdf" | grep Pages | perl -p -e 's/[^[0-9]*//'`
-
-include pdf_bounds.mk
+include pdf_bounds.mk config.mk
 
 .PHONY: all clean
 
@@ -17,16 +11,13 @@ all: final/chicago_yearly_price_data_$(month)_$(year).csv \
 
 clean:
 	rm -Rf raw/
-	rm -Rf final/
 	rm cleaned_csvs raw_csvs pdfs conversion_errors.csv
 
 tabula-java :
-	git clone https://github.com/tabulapdf/tabula-java.git
-	cd tabula-java && \
-		git checkout a1775ecb744abf06f6d6d7d024b561d13bb01f7d && \
-		mvn clean compile assembly:single
+	mkdir -p tabula-java
+	(cd tabula-java && wget $(tabula-download))
 
-pdfs: 
+pdfs:
 	mkdir -p raw/pdfs
 	python scripts/retrieve_pdfs.py $(month) $(year)
 	touch $@
@@ -35,6 +26,7 @@ raw_csvs: pdfs
 	mkdir -p raw/csvs/chicago raw/csvs/suburbs raw/csvs/county-summaries
 	for pdf in raw/pdfs/*.pdf; do \
 		export fname=$$(basename "$$pdf" .pdf); \
+		echo $$fname; \
 		if [[ $(pdf-pages) == 4 ]]; then \
 			case "$${fname}" in \
 				*"DuPage_County"*) \
