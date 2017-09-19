@@ -11,6 +11,7 @@ all: final/chicago_yearly_price_data_$(month)_$(year).csv \
 
 clean:
 	rm -Rf raw/
+	rm -Rf final/*
 	rm cleaned_csvs raw_csvs pdfs conversion_errors.csv
 
 tabula-java :
@@ -26,7 +27,7 @@ raw_csvs: pdfs
 	mkdir -p raw/csvs/chicago raw/csvs/suburbs raw/csvs/county-summaries
 	for pdf in raw/pdfs/*.pdf; do \
 		export fname=$$(basename "$$pdf" .pdf); \
-		echo $$fname; \
+		echo "Converting PDF for $$fname"; \
 		if [[ $(pdf-pages) == 4 ]]; then \
 			case "$${fname}" in \
 				*"DuPage_County"*) \
@@ -140,7 +141,7 @@ final/suburb_yearly_price_data_%.csv: cleaned_csvs
 		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_yearly.csv); \
 		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_yearly_final.csv"; \
 	done
-	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | sort -r -u | csvsort -I -c 1 > $@
+	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | csvsort -I -c 1 | uniq > $@
 	rm raw/csvs/suburbs/clean/*_yearly_final.csv
 
 final/suburb_monthly_price_data_%.csv: cleaned_csvs
@@ -150,5 +151,5 @@ final/suburb_monthly_price_data_%.csv: cleaned_csvs
 		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_monthly.csv); \
 		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_monthly_final.csv"; \
 	done
-	csvstack raw/csvs/suburbs/clean/*_monthly_final.csv | sort -r -u | csvsort -I -c 1 > $@
+	csvstack raw/csvs/suburbs/clean/*_monthly_final.csv | csvsort -I -c 1 | uniq > $@
 	rm raw/csvs/suburbs/clean/*_monthly_final.csv
