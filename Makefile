@@ -120,19 +120,19 @@ cleaned_csvs: raw_csvs
 
 final/chicago_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
-	csvstack raw/csvs/chicago/clean/*_yearly.csv > $@
+	csvstack raw/csvs/chicago/clean/*_yearly.csv | $(FORMAT_PERCENTAGES) > $@
 
 final/chicago_monthly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
-	csvstack raw/csvs/chicago/clean/*_monthly.csv > $@
+	csvstack raw/csvs/chicago/clean/*_monthly.csv | $(FORMAT_PERCENTAGES) > $@
 
 final/county_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
-	csvstack raw/csvs/county-summaries/clean/*_yearly.csv > $@
+	csvstack raw/csvs/county-summaries/clean/*_yearly.csv | $(FORMAT_PERCENTAGES) > $@
 
 final/county_monthly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
-	csvstack raw/csvs/county-summaries/clean/*_monthly.csv > $@
+	csvstack raw/csvs/county-summaries/clean/*_monthly.csv | $(FORMAT_PERCENTAGES) > $@
 
 final/suburb_yearly_price_data_%.csv: cleaned_csvs
 	mkdir -p final
@@ -141,7 +141,7 @@ final/suburb_yearly_price_data_%.csv: cleaned_csvs
 		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_yearly.csv); \
 		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_yearly_final.csv"; \
 	done
-	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | csvsort -I -c 1 | uniq > $@
+	csvstack raw/csvs/suburbs/clean/*_yearly_final.csv | csvsort -I -c 1 | uniq | $(FORMAT_PERCENTAGES) > $@
 	rm raw/csvs/suburbs/clean/*_yearly_final.csv
 
 final/suburb_monthly_price_data_%.csv: cleaned_csvs
@@ -151,5 +151,5 @@ final/suburb_monthly_price_data_%.csv: cleaned_csvs
 		export fnames=$$(echo raw/csvs/suburbs/clean/$${fname}_*_monthly.csv); \
 		csvjoin -I -c "community" $$fnames > "raw/csvs/suburbs/clean/$${fname}_monthly_final.csv"; \
 	done
-	csvstack raw/csvs/suburbs/clean/*_monthly_final.csv | csvsort -I -c 1 | uniq > $@
+	csvstack raw/csvs/suburbs/clean/*_monthly_final.csv | csvsort -I -c 1 | uniq | $(FORMAT_PERCENTAGES) > $@
 	rm raw/csvs/suburbs/clean/*_monthly_final.csv
