@@ -34,7 +34,7 @@ You'll need to decrypt the CAR login credentials before you can scrape the PDFs:
 blackbox_cat configs/secrets.py.gpg > scripts/secrets.py
 ```
 
-Set the desired month and year at the top of the `Makefile`:
+Set the desired month and year for the reports in `config.mk`:
 
 ```bash
 # follow this format:
