@@ -2,15 +2,12 @@
 
 Grab Chicagoland real estate reports from the CAR website and convert them all to spreadsheets.
 
-We built this scraper for Crain's Chicago Business as part of the [Where to Buy](https://github.com/datamade/where-to-buy) project.
-
 ### Requirements
 
 Make sure you have OS-level requirements installed:
 
 * Python 3.3+ (standard DataMade tool)
 * Java (or any JRE)
-* [blackbox and GPG](https://github.com/datamade/deploy-a-site/blob/master/Setup-blackbox.md)
 * pdfinfo (built-in on Ubuntu, available for other Linux distros as part of [Xpdf](http://www.foolabs.com/xpdf/download.html) - mac users can also use the [Poppler](https://poppler.freedesktop.org/) fork via homebrew: `brew install poppler`)
 
 Then, make a virtualenv and install Python requirements:
@@ -28,10 +25,24 @@ make tabula-java
 
 ### Running the scraper
 
-You'll need to decrypt the CAR login credentials before you can scrape the PDFs:
+You'll need to decrypt the CAR login credentials before you can scrape the PDFs.
+If you're on the keyring for this repo, you can decrypt the secrets file:
 
 ```
 blackbox_cat configs/secrets.py.gpg > scripts/secrets.py
+```
+
+Otherwise, copy over the example secrets file:
+
+```
+cp configs/secrets.example.py > scripts/secrets.py
+```
+
+Then, adjust the variables to reflect your CAR username and password:
+
+```
+CAR_USER = '<your_username>'
+CAR_PASS = '<your_password>'
 ```
 
 Set the desired month and year for the reports in `config.mk`:
